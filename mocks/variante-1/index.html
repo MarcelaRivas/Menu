@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es" data-style="imagenes" data-cols="2" data-nav="vertical" data-shape="redondeado" data-size="M" data-noimg="off" data-anim="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restaurante PP — Nuestra Gastronomía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#screen">Saltar al contenido</a>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#/" aria-label="Restaurante PP, ir al inicio">
+      <span class="logo" aria-hidden="true">PP</span>
+      <span class="brand-name">Restaurante PP</span>
+    </a>
+    <span class="topbar-ctx" id="ctx" aria-live="polite"></span>
+  </div>
+</header>
+
+<main id="screen" class="container" tabindex="-1"></main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-back" data-close></div>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="dialog-media" id="modal-media"></div>
+    <div class="dialog-body">
+      <span class="tag tag-rec">Anuncio</span>
+      <h2 id="modal-title">Noche de parrilla</h2>
+      <p>Todos los viernes, de 7:00 p. m. a 10:00 p. m., disfrute de cortes selectos a la brasa en la Sede Principal. Se recomienda reservar con anticipación.</p>
+      <button class="btn btn-primary" type="button" data-close>Entendido</button>
+    </div>
+    <button class="icon-btn dialog-x" type="button" data-close aria-label="Cerrar anuncio" id="modal-x"></button>
+  </div>
+</div>
+
+<button class="fab" id="fab" type="button" aria-label="Abrir panel de configuración" aria-expanded="false" aria-controls="panel"></button>
+<aside class="panel" id="panel" hidden aria-label="Panel de configuración"></aside>
+
+<script src="app.js"></script>
+</body>
+</html>

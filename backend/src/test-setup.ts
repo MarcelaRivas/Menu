@@ -1,0 +1,1 @@
+// Test setup - Prisma connection handled per test suite

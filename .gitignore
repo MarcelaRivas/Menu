@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.next/
+.env
+*.log
+uploads/
+postgres_data/
+frontend/node_modules/
+backend/node_modules/

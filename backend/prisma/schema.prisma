@@ -1,0 +1,476 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MenuType {
+  READ_ONLY
+  ORDER
+  FOOD_COURT
+}
+
+enum Visibility {
+  VISIBLE
+  HIDDEN
+}
+
+enum CategoryStyle {
+  WITH_IMAGES
+  LIST
+  BANNER
+}
+
+enum NavigationType {
+  VERTICAL
+  HORIZONTAL
+}
+
+enum ProductType {
+  SINGLE
+  COMBO
+}
+
+enum ModifierType {
+  ADDITION
+  OPTION
+}
+
+enum AdType {
+  STORY
+  LINK
+  SUBSCRIBE
+  PRODUCT
+}
+
+enum EntityType {
+  MENU
+  CATEGORY
+  PAGE_ELEMENT
+  AD
+}
+
+enum HistoryAction {
+  CREATE
+  EDIT
+  MOVE
+  COPY
+  DUPLICATE
+  REPLACE
+  DELETE
+  ACTIVATE
+  DEACTIVATE
+}
+
+model Restaurant {
+  id        Int   @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users     User[]
+  pages     Page[]
+  ads       Ad[]
+  media     Media[]
+  design    RestaurantDesign?
+
+  @@map("restaurant")
+}
+
+model RestaurantDesign {
+  id            Int      @id @default(autoincrement())
+  restaurantId  Int      @unique @map("restaurant_id")
+  headerType    String   @default("color") @map("header_type")
+  headerValue   String   @default("#ffffff") @map("header_value")
+  backgroundMediaId    Int?    @map("background_media_id")
+  backgroundBrightness Int     @default(100) @map("background_brightness")
+  title         String   @default("")
+  description   String   @default("")
+  font          String   @default("Inter")
+  fontSize      Int      @default(16) @map("font_size")
+  buttonFillColor      String  @default("#2563eb") @map("button_fill_color")
+  buttonFillOpacity    Int     @default(100) @map("button_fill_opacity")
+  buttonTextColor      String  @default("#ffffff") @map("button_text_color")
+  buttonShape          String  @default("rounded") @map("button_shape")
+  buttonSize           String  @default("M") @map("button_size")
+  buttonBorderColor    String  @default("#c3aa80") @map("button_border_color")
+  buttonShadowColor    String  @default("#000000") @map("button_shadow_color")
+  buttonShadowOpacity  Int     @default(10) @map("button_shadow_opacity")
+  showIcons     Boolean  @default(true) @map("show_icons")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("restaurant_design")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  restaurantId Int       @map("restaurant_id")
+  name         String
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  role         String       @default("admin_global")
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  history      History[]
+  notifications Notification[]
+
+  @@map("user")
+}
+
+model Page {
+  id           Int   @id @default(autoincrement())
+  restaurantId Int   @map("restaurant_id")
+  name         String
+  slug         String
+  contactInfo  String?  @map("contact_info")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
+  design       Design?
+  elements     PageElement[]
+  menus        Menu[]
+  publishedAds PublishedAd[]
+
+  @@unique([restaurantId, slug])
+  @@map("page")
+}
+
+model Design {
+  id              Int   @id @default(autoincrement())
+  pageId          Int   @unique @map("page_id")
+  headerType      String   @default("color") @map("header_type")
+  headerValue     String   @default("#ffffff") @map("header_value")
+  logoMediaId     Int?  @map("logo_media_id")
+  logoSize        Int      @default(100) @map("logo_size")
+  title           String   @default("")
+  description     String   @default("")
+  font            String   @default("Inter")
+  fontSize        Int      @default(16) @map("font_size")
+  buttonFillColor String   @default("#2563eb") @map("button_fill_color")
+  buttonShadow    String   @default("none") @map("button_shadow")
+  buttonBorder    String   @default("none") @map("button_border")
+  showIcons       Boolean  @default(true) @map("show_icons")
+  backgroundMediaId    Int?    @map("background_media_id")
+  backgroundBrightness Int     @default(100) @map("background_brightness")
+  buttonShape          String  @default("rounded") @map("button_shape")
+  buttonSize           String  @default("M") @map("button_size")
+  buttonTextColor      String  @default("#ffffff") @map("button_text_color")
+  buttonFillOpacity    Int     @default(100) @map("button_fill_opacity")
+  buttonBorderColor    String  @default("#c3aa80") @map("button_border_color")
+  buttonShadowColor    String  @default("#000000") @map("button_shadow_color")
+  buttonShadowOpacity  Int     @default(10) @map("button_shadow_opacity")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  page Page @relation(fields: [pageId], references: [id])
+
+  @@map("design")
+}
+
+model PageElement {
+  id         Int   @id @default(autoincrement())
+  pageId     Int   @map("page_id")
+  menuId     Int   @map("menu_id")
+  name       String
+  icon       String   @default("")
+  sortOrder  Int      @default(0) @map("sort_order")
+  active     Boolean  @default(true)
+  hasSchedule Boolean @default(false) @map("has_schedule")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  page      Page @relation(fields: [pageId], references: [id])
+  menu      Menu @relation(fields: [menuId], references: [id])
+
+  @@map("page_element")
+}
+
+model Menu {
+  id          Int     @id @default(autoincrement())
+  pageId      Int     @map("page_id")
+  name        String
+  type        MenuType   @default(READ_ONLY)
+  visibility  Visibility @default(VISIBLE)
+  language    String     @default("es")
+  hasSchedule Boolean    @default(false) @map("has_schedule")
+  deliveryEnabled Boolean @default(false) @map("delivery_enabled")
+  pickupEnabled   Boolean @default(false) @map("pickup_enabled")
+  dineInEnabled   Boolean @default(false) @map("dine_in_enabled")
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  page         Page              @relation(fields: [pageId], references: [id])
+  categories   Category[]
+  elements     PageElement[]
+
+  @@map("menu")
+}
+
+model Category {
+  id                  Int         @id @default(autoincrement())
+  menuId              Int         @map("menu_id")
+  parentId            Int?        @map("parent_id")
+  name                String
+  description         String         @default("")
+  imageMediaId        Int?        @map("image_media_id")
+  sortOrder           Int            @default(0) @map("sort_order")
+  visibility          Visibility     @default(VISIBLE)
+  style               CategoryStyle  @default(WITH_IMAGES)
+  columns             Int            @default(1)
+  navigation          NavigationType @default(VERTICAL)
+  centerContent       Boolean        @default(false) @map("center_content")
+  hideTitle           Boolean        @default(false) @map("hide_title")
+  hideProductTitles   Boolean        @default(false) @map("hide_product_titles")
+  descriptionEllipsis Boolean        @default(false) @map("description_ellipsis")
+  hasSchedule         Boolean        @default(false) @map("has_schedule")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  menu       Menu        @relation(fields: [menuId], references: [id])
+  parent     Category?   @relation("category_subcategories", fields: [parentId], references: [id])
+  children   Category[]  @relation("category_subcategories")
+  products   Product[]
+
+  @@map("category")
+}
+
+model Product {
+  id               Int      @id @default(autoincrement())
+  categoryId       Int      @map("category_id")
+  code             String?
+  name             String
+  description      String      @default("")
+  type             ProductType @default(SINGLE)
+  visibility       Visibility  @default(VISIBLE)
+  hidePrices       Boolean     @default(false) @map("hide_prices")
+  recommended      Boolean     @default(false)
+  isNew            Boolean     @default(false) @map("is_new")
+  soldOut          Boolean     @default(false) @map("sold_out")
+  preparationTime  Int?        @map("preparation_time")
+  timePerUnit      Boolean     @default(false) @map("time_per_unit")
+  productType1     String?     @map("product_type_1")
+  productType2     String?     @map("product_type_2")
+  productType3     String?     @map("product_type_3")
+  productType4     String?     @map("product_type_4")
+  link             String?     @default("")
+  sortOrder        Int         @default(0) @map("sort_order")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  category      Category           @relation(fields: [categoryId], references: [id])
+  prices        ProductPrice[]
+  priceRanges   PriceRange[]
+  modifiers     Modifier[]
+  productMedia  ProductMedia[]
+  productTags  ProductTag[]
+
+  @@map("product")
+}
+
+model ProductPrice {
+  id        Int  @id @default(autoincrement())
+  productId Int  @map("product_id")
+  name      String  @default("")
+  value     Decimal @db.Decimal(10, 2)
+  sortOrder Int     @default(0) @map("sort_order")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("product_price")
+}
+
+model PriceRange {
+  id         Int  @id @default(autoincrement())
+  productId  Int  @map("product_id")
+  fromQuantity Int   @map("from_quantity")
+  toQuantity   Int?  @map("to_quantity")
+  price      Decimal @db.Decimal(10, 2)
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("price_range")
+}
+
+model Modifier {
+  id        Int       @id @default(autoincrement())
+  productId Int       @map("product_id")
+  name      String
+  type      ModifierType @default(ADDITION)
+  required  Boolean      @default(false)
+  min       Int          @default(0)
+  max       Int          @default(1)
+  sortOrder Int          @default(0) @map("sort_order")
+
+  product Product          @relation(fields: [productId], references: [id])
+  options ModifierOption[]
+
+  @@map("modifier")
+}
+
+model ModifierOption {
+  id         Int         @id @default(autoincrement())
+  modifierId Int         @map("modifier_id")
+  name       String
+  price      Decimal        @default(0) @db.Decimal(10, 2)
+  sortOrder  Int            @default(0) @map("sort_order")
+
+  modifier Modifier @relation(fields: [modifierId], references: [id])
+
+  @@map("modifier_option")
+}
+
+model Media {
+  id           Int   @id @default(autoincrement())
+  restaurantId Int   @map("restaurant_id")
+  filename     String
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  size         Int
+  width        Int?
+  height       Int?
+  url          String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
+  productMedia ProductMedia[]
+
+  @@map("media")
+}
+
+model ProductMedia {
+  productId Int @map("product_id")
+  mediaId   Int @map("media_id")
+  sortOrder Int    @default(0) @map("sort_order")
+
+  product Product @relation(fields: [productId], references: [id])
+  media   Media   @relation(fields: [mediaId], references: [id])
+
+  @@id([productId, mediaId])
+  @@map("product_media")
+}
+
+model Tag {
+  id       Int          @id @default(autoincrement())
+  name     String       @unique
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  products ProductTag[]
+
+  @@map("tag")
+}
+
+model ProductTag {
+  productId Int @map("product_id")
+  tagId     Int @map("tag_id")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+  @@map("product_tag")
+}
+
+model Ad {
+  id           Int   @id @default(autoincrement())
+  restaurantId Int   @map("restaurant_id")
+  name         String?
+  type         AdType   @default(STORY)
+  mediaId      Int?  @map("media_id")
+  videoUrl     String?  @map("video_url")
+  text         String?
+  config       Json?
+  startsAt     DateTime? @map("starts_at")
+  endsAt       DateTime? @map("ends_at")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id])
+  publishedAds   PublishedAd[]
+
+  @@map("ad")
+}
+
+model PublishedAd {
+  id               Int  @id @default(autoincrement())
+  adId             Int  @map("ad_id")
+  pageId           Int  @map("page_id")
+  sortOrder        Int     @default(0) @map("sort_order")
+  showAfterSeconds Int     @default(0) @map("show_after_seconds")
+
+  ad   Ad   @relation(fields: [adId], references: [id])
+  page Page @relation(fields: [pageId], references: [id])
+
+  @@map("published_ad")
+}
+
+model Schedule {
+  id         Int      @id @default(autoincrement())
+  entityType EntityType  @map("entity_type")
+  entityId   Int      @map("entity_id")
+  startDate  DateTime    @map("start_date")
+  endDate    DateTime?   @map("end_date")
+  timezone   String      @default("America/Guayaquil")
+
+  timeRanges ScheduleTimeRange[]
+
+  @@map("schedule")
+}
+
+model ScheduleTimeRange {
+  id         Int  @id @default(autoincrement())
+  scheduleId Int  @map("schedule_id")
+  dayOfWeek  Int     @map("day_of_week")
+  startTime  String  @map("start_time")
+  endTime    String  @map("end_time")
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("schedule_time_range")
+}
+
+model History {
+  id         Int        @id @default(autoincrement())
+  entityType String        @map("entity_type")
+  entityId   Int        @map("entity_id")
+  entityName String        @map("entity_name")
+  action     HistoryAction
+  userId     Int?       @map("user_id")
+  fieldName  String?       @map("field_name")
+  oldValue   String?       @map("old_value")
+  newValue   String?       @map("new_value")
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@map("history")
+}
+
+model Notification {
+  id        Int   @id @default(autoincrement())
+  userId    Int   @map("user_id")
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notification")
+}
